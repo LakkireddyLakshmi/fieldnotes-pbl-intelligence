@@ -5,20 +5,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: "#101114",
-        panel: "#17191e",
-        raised: "#202329",
-        line: "#2b2e35",
-        muted: "#a2a7b0",
-        quiet: "#707783",
+        canvas: "rgb(var(--c-canvas) / <alpha-value>)",
+        panel: "rgb(var(--c-panel) / <alpha-value>)",
+        raised: "rgb(var(--c-raised) / <alpha-value>)",
+        line: "rgb(var(--c-line) / <alpha-value>)",
+        muted: "rgb(var(--c-muted) / <alpha-value>)",
+        quiet: "rgb(var(--c-quiet) / <alpha-value>)",
         gold: {
-          DEFAULT: "#e6b75a",
-          hover: "#f0cc7e",
-          deep: "#47381e",
+          DEFAULT: "rgb(var(--c-accent) / <alpha-value>)",
+          hover: "rgb(var(--c-accent-hover) / <alpha-value>)",
+          deep: "rgb(var(--c-accent-soft) / <alpha-value>)",
         },
       },
       boxShadow: {
-        panel: "0 16px 42px rgba(0, 0, 0, 0.18)",
+        panel: "0 1px 3px rgba(15, 23, 42, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04)",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],

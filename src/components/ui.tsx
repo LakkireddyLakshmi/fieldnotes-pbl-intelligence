@@ -13,9 +13,9 @@ export function Button({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "outline" | "ghost" }) {
   const styles = {
-    primary: "border-gold bg-gold text-[#17140d] hover:bg-gold-hover",
-    outline: "border-line bg-transparent text-slate-200 hover:border-gold/60 hover:text-gold",
-    ghost: "border-transparent bg-transparent text-muted hover:bg-raised hover:text-white",
+    primary: "border-[#3158c9] bg-[#3158c9] text-white hover:border-[#2548aa] hover:bg-[#2548aa]",
+    outline: "border-line bg-white text-slate-700 hover:border-gold/60 hover:text-gold",
+    ghost: "border-transparent bg-transparent text-muted hover:bg-raised hover:text-slate-900",
   };
   return (
     <button
@@ -45,7 +45,7 @@ export function SelectField({
       {label}
       <span className="relative">
         <select
-          className="h-11 w-full appearance-none rounded-xl border border-line bg-[#13151a] px-3.5 pr-9 text-sm text-slate-100 outline-none transition focus:border-gold/70 focus:ring-2 focus:ring-gold/15"
+          className="h-11 w-full appearance-none rounded-xl border border-line bg-white px-3.5 pr-9 text-sm text-slate-800 outline-none transition focus:border-gold/70 focus:ring-2 focus:ring-gold/15"
           value={value}
           onChange={(event) => onChange(event.target.value)}
         >
@@ -59,9 +59,9 @@ export function SelectField({
   );
 }
 
-export function Badge({ children, status }: { children: ReactNode; status: RiskStatus | "Draft" | "Submitted" }) {
+export function Badge({ children, status, className = "" }: { children: ReactNode; status: RiskStatus | "Draft" | "Submitted"; className?: string }) {
   const key = String(status).toLowerCase().replaceAll(" ", "-");
-  return <span className={`status-badge status-${key}`}>{children}</span>;
+  return <span className={`status-badge status-${key} ${className}`}>{children}</span>;
 }
 
 export function SectionHeading({
@@ -79,7 +79,7 @@ export function SectionHeading({
     <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
       <div>
         <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-gold">{eyebrow}</p>
-        <h2 className="font-display text-xl font-semibold tracking-tight text-white sm:text-2xl">{title}</h2>
+        <h2 className="heading-accent font-display text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">{title}</h2>
         {detail && <p className="mt-1.5 max-w-2xl text-sm text-muted">{detail}</p>}
       </div>
       {action}
@@ -98,7 +98,7 @@ export function LoadingState({ label = "Loading report data…" }: { label?: str
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-red-500/25 bg-red-950/20 p-5 text-sm text-red-100 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between">
       <span className="flex items-center gap-2"><AlertCircle aria-hidden="true" className="size-4 shrink-0" />{message}</span>
       {onRetry && <Button variant="outline" onClick={onRetry}>Retry</Button>}
     </div>
@@ -109,7 +109,7 @@ export function Toast({ message, kind = "success" }: { message: string; kind?: "
   if (!message) return null;
   const Icon = kind === "success" ? Check : AlertCircle;
   return (
-    <div className={`fixed bottom-5 right-5 z-50 flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 text-sm shadow-panel ${kind === "success" ? "border-gold/30 bg-raised text-white" : "border-red-500/40 bg-red-950/90 text-red-100"}`} role="status" aria-live="polite">
+    <div className={`fixed bottom-5 right-5 z-50 flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 text-sm shadow-panel ${kind === "success" ? "border-line bg-white text-slate-900" : "border-red-200 bg-red-50 text-red-800"}`} role="status" aria-live="polite">
       <Icon aria-hidden="true" className="size-4 shrink-0 text-gold" />
       {message}
     </div>

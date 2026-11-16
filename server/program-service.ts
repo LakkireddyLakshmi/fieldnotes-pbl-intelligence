@@ -4,6 +4,7 @@ import type {
   Metrics,
   ProgramDashboard,
   ProgramFilters,
+  SchoolRecord,
 } from "./contracts.js";
 import {
   aggregateProgramRows,
@@ -97,7 +98,7 @@ function buildActions(metrics: Metrics, geographies: GeographyMetric[]) {
   return actions.slice(0, 3);
 }
 
-export async function getProgramDashboard(filters: ProgramFilters): Promise<ProgramDashboard> {
+export async function getProgramDashboard(filters: ProgramFilters, requestedGroupBy?: "district" | "block"): Promise<ProgramDashboard> {
   const { rows: monthsResult } = await pool.query<{ month: string }>(
     "SELECT DISTINCT month FROM pbl_responses ORDER BY month",
   );
@@ -106,7 +107,7 @@ export async function getProgramDashboard(filters: ProgramFilters): Promise<Prog
 
   const monthIndex = months.indexOf(filters.month);
   const previousMonth = monthIndex > 0 ? months[monthIndex - 1] : null;
-  const monthList = previousMonth ? [filters.month, previousMonth] : [filters.month];
+  const monthList = months.slice(Math.max(0, monthIndex - 11), monthIndex + 1);
   const { rows } = await pool.query<PblRow>(
     `SELECT month, school_code, district, block, participated, evidence, classes, subjects,
             enrollment, math_attendance, science_attendance
@@ -122,11 +123,16 @@ export async function getProgramDashboard(filters: ProgramFilters): Promise<Prog
   const prior = previousMonth ? filterProgramRows(previousRows, filters) : [];
   const metrics = aggregateProgramRows(current, filters);
   const previousMetrics = previousMonth ? aggregateProgramRows(prior, filters) : blankMetrics();
+  const monthlyTrend = monthList.map((month) => {
+    const monthRows = rows.filter((row) => row.month === month);
+    const values = aggregateProgramRows(filterProgramRows(monthRows, filters), filters);
+    return { month, participationRate: values.participationRate, evidenceRate: values.evidenceRate, attendanceRate: values.attendanceRate };
+  });
 
   const geographicBase = filterProgramRows(currentRows, filters, true)
     .filter((row) => filters.district === "all" || row.district === filters.district)
     .filter((row) => filters.block === "all" || row.block === filters.block);
-  const groupBy = filters.district === "all" && filters.block === "all" ? "district" : "block";
+  const groupBy = requestedGroupBy ?? (filters.district === "all" && filters.block === "all" ? "district" : "block");
   const groups = new Map<string, PblRow[]>();
   for (const row of geographicBase) {
     const name = row[groupBy];
@@ -176,6 +182,7 @@ export async function getProgramDashboard(filters: ProgramFilters): Promise<Prog
     metrics,
     previousMetrics,
     previousMonth,
+    monthlyTrend,
     groupBy,
     geographies,
     risks,
@@ -190,4 +197,55 @@ export async function getProgramDashboard(filters: ProgramFilters): Promise<Prog
     },
     actions,
   };
+}
+
+export async function getSchoolRecords(filters: ProgramFilters): Promise<SchoolRecord[]> {
+  const { rows } = await pool.query<PblRow & { school_name: string }>(
+    `SELECT month, school_code, school_name, district, block, participated, evidence,
+            classes, subjects, enrollment, math_attendance, science_attendance
+       FROM pbl_responses
+      WHERE month = $1
+        AND ($2 = 'all' OR district = $2)
+        AND ($3 = 'all' OR block = $3)
+      ORDER BY district, block, school_name, school_code`,
+    [filters.month, filters.district, filters.block],
+  );
+
+  const gradeIndexes = filters.grade === "all" ? [0, 1, 2] : [Number(filters.grade) - 6];
+  const filteredRows = filterProgramRows(rows, filters) as Array<PblRow & { school_name: string }>;
+  return filteredRows.map((row) => {
+    const enrollment = gradeIndexes.reduce((sum, index) => sum + (row.enrollment[index] || 0), 0);
+    const participated = row.participated && (filters.grade === "all" || row.classes.includes(Number(filters.grade)));
+    const selectedSubjects = filters.subject === "all"
+      ? row.subjects
+      : row.subjects.includes(filters.subject) ? [filters.subject] : [];
+    let attended = 0;
+    let capacity = 0;
+    if (participated) {
+      gradeIndexes.forEach((index) => {
+        if (!row.classes.includes(index + 6)) return;
+        selectedSubjects.forEach((subject) => {
+          attended += subject === "Math" ? row.math_attendance[index] : row.science_attendance[index];
+          capacity += row.enrollment[index] || 0;
+        });
+      });
+    }
+    const attendanceRate = capacity > 0 ? attended / capacity : null;
+    const signal = worstStatus([
+      participated ? 1 : 0,
+      participated ? (row.evidence ? 1 : 0) : null,
+      attendanceRate,
+    ]);
+    return {
+      schoolCode: row.school_code,
+      schoolName: row.school_name,
+      district: row.district,
+      block: row.block,
+      enrollment,
+      attendanceRate,
+      evidence: participated && row.evidence,
+      participated,
+      signal,
+    };
+  }).filter((row) => row.enrollment > 0);
 }

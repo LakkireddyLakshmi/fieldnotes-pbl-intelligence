@@ -36,6 +36,16 @@ export interface ReviewAction {
   status: "Draft";
 }
 
+export type FollowUpStatus = "Draft" | "In Progress" | "Complete";
+
+export interface FollowUpRecord extends Omit<ReviewAction, "status"> {
+  id: string;
+  month: string;
+  district: string;
+  block: string;
+  status: FollowUpStatus;
+}
+
 export interface RiskInsight {
   name: string;
   status: RiskStatus;
@@ -48,6 +58,7 @@ export interface ProgramDashboard {
   metrics: Metrics;
   previousMetrics: Metrics;
   previousMonth: string | null;
+  monthlyTrend: Array<{ month: string; participationRate: number | null; evidenceRate: number | null; attendanceRate: number | null }>;
   groupBy: "district" | "block";
   geographies: GeographyMetric[];
   risks: RiskInsight[];
@@ -67,6 +78,18 @@ export interface FilterOptions {
   blocks: string[];
   grades: number[];
   subjects: string[];
+}
+
+export interface SchoolRecord {
+  schoolCode: string;
+  schoolName: string;
+  district: string;
+  block: string;
+  enrollment: number;
+  attendanceRate: number | null;
+  evidence: boolean;
+  participated: boolean;
+  signal: RiskStatus;
 }
 
 export interface GrantOption {

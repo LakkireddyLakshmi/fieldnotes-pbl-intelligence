@@ -40,6 +40,46 @@ BEGIN
 END
 $$;
 
+CREATE TABLE IF NOT EXISTS auth_users (
+  id bigserial PRIMARY KEY,
+  name text NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 100),
+  email text NOT NULL UNIQUE CHECK (email = lower(email)),
+  password_hash text NOT NULL,
+  role text NOT NULL CHECK (role IN ('admin', 'analyst', 'viewer')),
+  active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS auth_sessions (
+  token_hash text PRIMARY KEY,
+  user_id bigint NOT NULL REFERENCES auth_users(id) ON DELETE CASCADE,
+  expires_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS auth_sessions_user_idx ON auth_sessions (user_id);
+
+CREATE TABLE IF NOT EXISTS follow_up_actions (
+  id bigserial PRIMARY KEY,
+  month text NOT NULL CHECK (month ~ '^[0-9]{4}-[0-9]{2}$'),
+  district text NOT NULL DEFAULT 'all',
+  block text NOT NULL DEFAULT 'all',
+  title text NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 160),
+  detail text NOT NULL CHECK (length(trim(detail)) BETWEEN 1 AND 1200),
+  owner text NOT NULL CHECK (length(trim(owner)) BETWEEN 1 AND 120),
+  priority text NOT NULL CHECK (priority IN ('On Track', 'Behind', 'At Risk', 'Critical', 'No data')),
+  metric text NOT NULL CHECK (length(trim(metric)) BETWEEN 1 AND 160),
+  due_date date NOT NULL,
+  status text NOT NULL DEFAULT 'Draft' CHECK (status IN ('Draft', 'In Progress', 'Complete')),
+  created_by bigint NOT NULL REFERENCES auth_users (id),
+  updated_by bigint NOT NULL REFERENCES auth_users (id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS follow_up_actions_month_due_idx ON follow_up_actions (month, due_date, id);
+
 CREATE TABLE IF NOT EXISTS grant_finance (
   grant_id text NOT NULL REFERENCES grants (grant_id) ON DELETE CASCADE,
   month text NOT NULL CHECK (month ~ '^[0-9]{4}-[0-9]{2}$'),
