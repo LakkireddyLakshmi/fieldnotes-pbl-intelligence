@@ -137,6 +137,8 @@ button:focus-visible, a:focus-visible, select:focus-visible { outline: 2px solid
 .dark .recharts-tooltip-wrapper > div { border-color: #475569; background: #1e293b; }
 .geography-dot-mark { fill: #3158c9; stroke: #ffffff; stroke-width: 1.5; }
 .geography-dot-label { fill: #475569; }
+.geography-bar-label { fill: #172b4d; font-size: 12px; font-weight: 700; }
+:root[data-theme="dark"] .geography-bar-label { fill: #f1f5f9; }
 .dark .geography-dot-mark { fill: #9db8ff; stroke: #111827; }
 .dark .geography-dot-label { fill: #e2e8f0; }
 
@@ -153,6 +155,15 @@ table tbody tr:last-child td { border-bottom: 0; }
 .workspace-tab:hover { background: #eaf0ff !important; color: #1e3a8a !important; }
 .workspace-tab-active,
 .workspace-tab-active:hover { background: #3158c9 !important; color: #ffffff !important; }
+.landing-brand-accent { color: #3158c9; }
+:root[data-theme="dark"] .pbl-landing .text-slate-950,
+:root[data-theme="dark"] .pbl-landing .text-slate-900 { color: #f1f5f9 !important; }
+:root[data-theme="dark"] .pbl-landing .text-slate-600,
+:root[data-theme="dark"] .pbl-landing .text-slate-700 { color: #cbd5e1 !important; }
+:root[data-theme="dark"] .pbl-landing .landing-brand-accent { color: #9db8ff; }
+:root[data-theme="dark"] .pbl-landing .bg-blue-50 { background-color: #1e3158 !important; }
+:root[data-theme="dark"] .pbl-landing .text-blue-800,
+:root[data-theme="dark"] .pbl-landing .text-blue-700 { color: #b8c9ff !important; }
 :root[data-theme="dark"] .workspace-tab { color: #d7deea !important; }
 :root[data-theme="dark"] .workspace-tab:hover { background: #2d3c56 !important; color: #ffffff !important; }
 :root[data-theme="dark"] .workspace-tab-active,
@@ -208,6 +219,62 @@ main[data-template="editorial"] .rounded-2xl { border-radius: 1.25rem; }
 main[data-template="editorial"] h2,
 main[data-template="editorial"] h3 { letter-spacing: -0.035em; }
 main[data-template="editorial"] > .space-y-5 > :first-child { border-bottom: 1px solid rgb(var(--c-line)); padding-bottom: 1rem; }
+
+/* Executive: roomy, presentation-ready panels with crisp blue accents. */
+main[data-template="executive"] > .space-y-5 { gap: 1.5rem; }
+main[data-template="executive"] .rounded-2xl { border-radius: 1rem; }
+main[data-template="executive"] .shadow-panel { box-shadow: 0 8px 24px rgb(30 58 138 / 0.07) !important; }
+main[data-template="executive"] .metric-card { border-top: 3px solid #3158c9; }
+main[data-template="executive"] h2,
+main[data-template="executive"] h3 { letter-spacing: -0.025em; }
+
+/* Field log: practical, table-forward rows and tighter panels for daily review. */
+main[data-template="field"] > .space-y-5 { gap: 0.9rem; }
+main[data-template="field"] .rounded-2xl { border-radius: 0.75rem; }
+main[data-template="field"] .shadow-panel { box-shadow: none !important; }
+main[data-template="field"] table { border-collapse: separate; border-spacing: 0; }
+main[data-template="field"] table thead { background: #eaf0f8; }
+main[data-template="field"] table tbody tr { border-bottom: 1px solid #dbe3ee; }
+main[data-template="field"] table tbody td { padding-top: 0.9rem; padding-bottom: 0.9rem; }
+
+/* Briefing: report-style hierarchy for review meetings and grant summaries. */
+main[data-template="briefing"] > .space-y-5 { gap: 1.35rem; }
+main[data-template="briefing"] > .space-y-5 > :first-child { border-left: 4px solid #3158c9; padding: 0.5rem 0 0.65rem 1rem; }
+main[data-template="briefing"] .rounded-2xl { border-radius: 1rem; }
+main[data-template="briefing"] h2,
+main[data-template="briefing"] h3 { letter-spacing: -0.03em; }
+main[data-template="briefing"] table thead { background: #eef3fc; }
+
+:root[data-theme="dark"] main[data-template="field"] table thead,
+:root[data-theme="dark"] main[data-template="briefing"] table thead { background: #26364f; }
+:root[data-theme="dark"] main[data-template="field"] table tbody tr { border-color: #475569; }
+:root[data-theme="dark"] main[data-template="executive"] .shadow-panel { box-shadow: 0 8px 24px rgb(0 0 0 / 0.18) !important; }
+
+/* Canvas: quiet, flat surfaces that keep the information in focus. */
+main[data-template="canvas"] > .space-y-5 { gap: 1.25rem; }
+main[data-template="canvas"] .shadow-panel { box-shadow: none !important; }
+main[data-template="canvas"] .rounded-2xl { border-radius: 0.9rem; }
+main[data-template="canvas"] .border-line { border-color: #d7e0ec; }
+
+/* Ledger: crisp, compact data review with a stronger table hierarchy. */
+main[data-template="ledger"] > .space-y-5 { gap: 0.85rem; }
+main[data-template="ledger"] .rounded-2xl { border-radius: 0.55rem; }
+main[data-template="ledger"] table { border-collapse: separate; border-spacing: 0; }
+main[data-template="ledger"] table thead { background: #e7edf7; color: #243b61; }
+main[data-template="ledger"] table tbody tr:nth-child(even) { background: #f2f5fa; }
+main[data-template="ledger"] table td { font-variant-numeric: tabular-nums; }
+main[data-template="ledger"] .shadow-panel { box-shadow: 0 1px 2px rgb(15 23 42 / 0.06) !important; }
+
+/* Presentation: clear section breaks and large figures for a shared-screen review. */
+main[data-template="presentation"] > .space-y-5 { gap: 1.6rem; }
+main[data-template="presentation"] .rounded-2xl { border-radius: 1.1rem; }
+main[data-template="presentation"] .metric-card { border-left: 4px solid #3158c9; }
+main[data-template="presentation"] .metric-value { font-size: 2rem; }
+main[data-template="presentation"] h2,
+main[data-template="presentation"] h3 { font-size: 1.15em; letter-spacing: -0.025em; }
+:root[data-theme="dark"] main[data-template="canvas"] .border-line { border-color: #475569; }
+:root[data-theme="dark"] main[data-template="ledger"] table thead { background: #26364f; color: #dbe6ff; }
+:root[data-theme="dark"] main[data-template="ledger"] table tbody tr:nth-child(even) { background: #273449; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

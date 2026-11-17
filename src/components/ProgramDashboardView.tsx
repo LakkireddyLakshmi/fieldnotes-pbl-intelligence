@@ -49,7 +49,7 @@ function TrendDelta({ current, previous }: { current: number | null; previous: n
   const delta = (current - previous) * 100;
   const Icon = delta >= 0 ? TrendingUp : TrendingDown;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-bold tabular-nums ${delta >= 0 ? "trend-pill-positive" : "trend-pill-negative"}`}>
+    <span className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-bold tabular-nums ${delta >= 0 ? "trend-pill-positive" : "trend-pill-negative"}`}>
       <Icon aria-hidden="true" className="size-4" strokeWidth={2.7} />{delta >= 0 ? "+" : "−"}{Math.abs(delta).toFixed(1)} pp
     </span>
   );
@@ -69,16 +69,16 @@ function MetricCard({
   status?: { current: number | null; previous: number | null };
 }) {
   return (
-    <Card className="group min-h-32 p-4 transition duration-200 hover:-translate-y-0.5 hover:border-gold/25 hover:bg-gold/5 sm:p-5">
-      <div className="flex items-start justify-between gap-2">
+    <Card className="metric-card group min-h-32 p-4 transition duration-200 hover:-translate-y-0.5 hover:border-gold/25 hover:bg-gold/5 sm:p-5">
+      <div className="flex items-center justify-between gap-3">
         <p className="metric-label text-xs font-semibold">{label}</p>
-        <span className="metric-icon grid size-8 place-items-center rounded-lg border">
+        <span className="metric-icon grid size-9 shrink-0 place-items-center rounded-lg border">
           <Icon aria-hidden="true" className="size-4" strokeWidth={2.5} />
         </span>
       </div>
       <p className="metric-value mt-4 font-display text-2xl font-bold tracking-tight sm:text-[27px]">{value}</p>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <p className="metric-note truncate text-[11px] font-medium">{note}</p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <p className="metric-note min-w-0 flex-1 text-xs font-medium leading-5">{note}</p>
         {status && <TrendDelta current={status.current} previous={status.previous} />}
       </div>
     </Card>
@@ -87,10 +87,10 @@ function MetricCard({
 
 function StatCards({ metrics, previous }: { metrics: Metrics; previous: Metrics }) {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
       <MetricCard label="Schools in slice" value={formatNumber(metrics.schools)} note="Unique responding schools" icon={School} />
       <MetricCard label="PBL completed" value={formatNumber(metrics.participants)} note={`${formatPercent(metrics.participationRate)} participation`} icon={ClipboardCheck} status={{ current: metrics.participationRate, previous: previous.participationRate }} />
-      <MetricCard label="Evidence submitted" value={formatPercent(metrics.evidenceRate)} note={`${formatNumber(metrics.evidenceCount)} of completed schools`} icon={FileCheck2} />
+      <MetricCard label="Evidence submitted" value={formatPercent(metrics.evidenceRate)} note={`${formatNumber(metrics.evidenceCount)} of completed schools`} icon={FileCheck2} status={{ current: metrics.evidenceRate, previous: previous.evidenceRate }} />
       <MetricCard label="Total enrollment" value={formatNumber(metrics.enrollment)} note="Unique pupils in selected grades" icon={GraduationCap} />
       <MetricCard label="Session attendance" value={formatNumber(metrics.attendance)} note="Across selected PBL sessions" icon={CalendarCheck} />
       <MetricCard label="Attendance rate" value={formatPercent(metrics.attendanceRate)} note={`${formatNumber(metrics.attendanceCapacity)} session places`} icon={Percent} status={{ current: metrics.attendanceRate, previous: previous.attendanceRate }} />
@@ -98,11 +98,12 @@ function StatCards({ metrics, previous }: { metrics: Metrics; previous: Metrics 
   );
 }
 
-function RateTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
+function RateTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string; payload?: { name?: string } }>; label?: string | number }) {
   if (!active || !payload?.length) return null;
+  const geographyName = payload[0]?.payload?.name ?? label;
   return (
     <div className="rounded-xl border border-line bg-white px-3 py-2.5 text-xs shadow-panel">
-      <p className="mb-2 font-semibold text-slate-900">{label}</p>
+      <p className="mb-2 font-semibold text-slate-900">{geographyName}</p>
       {payload.map((item) => <p key={item.name} className="mt-1 text-muted"><span className="mr-1.5 inline-block size-2 rounded-full" style={{ backgroundColor: item.color }} />{item.name}: {item.value.toFixed(1)}%</p>)}
     </div>
   );
@@ -111,11 +112,11 @@ function RateTooltip({ active, payload, label }: { active?: boolean; payload?: A
 function ParticipationDot({ cx, cy, payload }: { cx?: number; cy?: number; payload?: { Participation?: number } }) {
   if (cx === undefined || cy === undefined || payload?.Participation === undefined) return null;
   const value = payload.Participation;
-  const placeLeft = value >= 70;
+  const placeLeft = value >= 90;
   return (
     <g className="geography-dot">
-      <circle className="geography-dot-mark" cx={cx} cy={cy} r={4.5} />
-      <text className="geography-dot-label" x={cx + (placeLeft ? -9 : 9)} y={cy + 4} textAnchor={placeLeft ? "end" : "start"} fontSize={10} fontWeight={600}>{value.toFixed(1)}%</text>
+      <circle className="geography-dot-mark" cx={cx} cy={cy} r={6} />
+      <text className="geography-dot-label" x={cx + (placeLeft ? -11 : 11)} y={cy + 4} textAnchor={placeLeft ? "end" : "start"} fontSize={11} fontWeight={700}>{value.toFixed(1)}%</text>
     </g>
   );
 }
@@ -187,7 +188,7 @@ function GeographyPanel({ dashboard, onSelect, level, onLevelChange }: { dashboa
       <SectionHeading
         eyebrow="Geographic performance"
         title={`${dashboard.groupBy === "district" ? "District" : "Block"} comparison`}
-        detail="Chart shows the four lowest and four highest locations; use the table for all locations. The dashed marker is the 75% target."
+        detail="Dots compare the four lowest and four highest locations. The 75% target is marked; the table lists every location."
         action={<div className="inline-flex rounded-lg border border-line bg-raised p-1" role="group" aria-label="Geography table level">
           {(["district", "block"] as const).map((item) => <button key={item} type="button" aria-pressed={level === item} onClick={() => { setTablePage(1); onLevelChange(item); }} className={`rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition ${level === item ? "bg-[#3158c9] text-white" : "text-muted hover:bg-panel hover:text-slate-900"}`}>{item === "district" ? "Districts" : "Blocks"}</button>)}
         </div>}
@@ -205,11 +206,11 @@ function GeographyPanel({ dashboard, onSelect, level, onLevelChange }: { dashboa
       <div className="mb-5 h-[340px] w-full">
         {chartData.length ? (
           <ResponsiveContainer width="100%" height="100%">
-            <ScatterChart data={chartData} margin={{ left: 8, right: 36, top: 16, bottom: 6 }}>
-              <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 5" vertical horizontal={false} />
-              <XAxis type="number" dataKey="Participation" domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(value: number) => `${value}%`} />
-              <YAxis type="number" dataKey="rank" domain={[0, Math.max(1, chartData.length - 1)]} ticks={chartData.map((item) => item.rank)} reversed tickFormatter={(value: number) => chartData[value]?.name ?? ""} width={142} tick={{ fill: "#475569", fontSize: 10 }} axisLine={false} tickLine={false} />
-              <ReferenceLine x={75} stroke="#d29436" strokeDasharray="4 4" label={{ value: "75% target", fill: "#9a681c", fontSize: 10, position: "insideTopRight" }} />
+            <ScatterChart data={chartData} margin={{ left: 8, right: 42, top: 10, bottom: 6 }}>
+              <CartesianGrid stroke="#e7edf5" strokeDasharray="3 5" vertical horizontal />
+              <XAxis type="number" dataKey="Participation" domain={[0, 110]} ticks={[0, 25, 50, 75, 100]} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(value: number) => `${value}%`} />
+              <YAxis type="number" dataKey="rank" domain={[0, Math.max(1, chartData.length - 1)]} ticks={chartData.map((item) => item.rank)} reversed tickFormatter={(value: number) => chartData[value]?.name ?? ""} width={155} tick={{ fill: "#334155", fontSize: 12, fontWeight: 500 }} axisLine={false} tickLine={false} />
+              <ReferenceLine x={75} stroke="#d29436" strokeDasharray="4 4" label={{ value: "75% target", fill: "#9a681c", fontSize: 11, position: "insideTopRight" }} />
               <Tooltip content={<RateTooltip />} />
               <Scatter dataKey="Participation" name="PBL participation" fill="#3158c9" shape={<ParticipationDot />} />
             </ScatterChart>

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Globe2, KeyRound, LockKeyhole, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
+import { BarChart3, ClipboardCheck, Globe2, KeyRound, Landmark, LockKeyhole, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 import type { AuthUser } from "../types";
 import { Button, Card, SectionHeading } from "./ui";
 
@@ -15,28 +15,64 @@ export function SignInView({ onSignIn, error, busy }: {
     void onSignIn(email, password);
   };
 
+  const features = [
+    { icon: BarChart3, title: "Program overview", detail: "Review participation, evidence, attendance, and monthly trends." },
+    { icon: Globe2, title: "District and block comparison", detail: "Find priority locations and compare reported performance." },
+    { icon: Landmark, title: "Grant reporting", detail: "Bring outcomes, finance, milestones, and evidence into one report." },
+  ];
+
   return (
-    <main className="grid min-h-screen place-items-center bg-canvas px-4 py-10">
-      <Card className="w-full max-w-md p-7 sm:p-9">
-        <div className="mb-7 flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl bg-[#3158c9] text-white"><Globe2 aria-hidden="true" className="size-6" strokeWidth={2.3} /></span>
-          <div><p className="font-display text-lg font-bold text-slate-900">PBL Review Hub</p><p className="text-xs text-muted">Program review and grant reporting</p></div>
+    <main className="pbl-landing min-h-screen bg-canvas px-4 py-5 sm:px-8 sm:py-8 lg:px-12">
+      <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-7xl flex-col">
+        <header className="flex items-center justify-between border-b border-line/80 pb-5">
+          <div className="flex items-center gap-3">
+            <span className="grid size-11 place-items-center rounded-xl bg-[#3158c9] text-white shadow-sm"><Globe2 aria-hidden="true" className="size-6" strokeWidth={2.3} /></span>
+            <div><p className="font-display text-lg font-bold tracking-tight text-slate-900">PBL Review Hub</p><p className="text-[10px] font-semibold uppercase tracking-[0.17em] text-muted">Program intelligence</p></div>
+          </div>
+          <span className="hidden items-center gap-2 rounded-full border border-line bg-panel px-3 py-2 text-xs font-semibold text-muted sm:inline-flex"><ShieldCheck aria-hidden="true" className="size-4 text-blue-700" />Secure workspace</span>
+        </header>
+
+        <div className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:py-14">
+          <section className="max-w-2xl">
+            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-blue-800"><span className="size-2 rounded-full bg-[#3158c9]" />PBL program intelligence</p>
+            <h1 className="font-display text-4xl font-bold leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">A clearer view of <span className="landing-brand-accent">program progress.</span></h1>
+            <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">Review school participation, compare districts and blocks, and prepare grant reports from the selected reporting records.</p>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              {features.map(({ icon: Icon, title, detail }) => (
+                <article key={title} className="rounded-2xl border border-line bg-panel p-4 shadow-sm">
+                  <span className="grid size-10 place-items-center rounded-xl bg-blue-50 text-[#3158c9]"><Icon aria-hidden="true" className="size-5" strokeWidth={2} /></span>
+                  <h2 className="mt-4 text-sm font-bold leading-5 text-slate-900">{title}</h2>
+                  <p className="mt-1.5 text-xs leading-5 text-muted">{detail}</p>
+                </article>
+              ))}
+            </div>
+            <p className="mt-6 flex items-center gap-2 text-xs font-medium text-muted"><ClipboardCheck aria-hidden="true" className="size-4 text-blue-700" />Figures stay linked to their reporting records.</p>
+          </section>
+
+          <section aria-labelledby="signin-heading" className="mx-auto w-full max-w-md lg:mx-0 lg:ml-auto">
+            <Card className="p-6 shadow-panel sm:p-8">
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div><p className="text-xs font-bold uppercase tracking-[0.15em] text-blue-700">Welcome back</p><h2 id="signin-heading" className="heading-accent mt-2 font-display text-2xl font-bold text-slate-900">Sign in to continue</h2></div>
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-raised text-[#3158c9]"><LockKeyhole aria-hidden="true" className="size-5" /></span>
+              </div>
+              <p className="text-sm leading-6 text-muted">Use the account provided by your workspace administrator.</p>
+              <form className="mt-6 space-y-4" onSubmit={submit}>
+                <label className="grid gap-2 text-sm font-semibold text-slate-700">Email address
+                  <input required autoComplete="username" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-12 rounded-xl border border-line bg-white px-3.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15" />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold text-slate-700">Password
+                  <input required autoComplete="current-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-12 rounded-xl border border-line bg-white px-3.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15" />
+                </label>
+                {error && <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
+                <Button type="submit" className="mt-2 w-full justify-center py-3 text-sm" disabled={busy}><LockKeyhole aria-hidden="true" className="size-4" />{busy ? "Signing in…" : "Sign in to workspace"}</Button>
+              </form>
+              <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-muted">Accounts and permissions are managed by your administrator.</p>
+            </Card>
+            <p className="mt-4 text-center text-xs text-quiet">PBL Review Hub · Program review and grant reporting</p>
+          </section>
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">Secure workspace</p>
-        <h1 className="heading-accent mt-1 font-display text-2xl font-semibold text-slate-900">Sign in to continue</h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted">Use the account provided by your workspace administrator.</p>
-        <form className="mt-6 space-y-4" onSubmit={submit}>
-          <label className="grid gap-2 text-xs font-medium text-muted">Email address
-            <input required autoComplete="username" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-11 rounded-xl border border-line bg-white px-3.5 text-sm text-slate-800 outline-none focus:border-gold focus:ring-2 focus:ring-gold/15" />
-          </label>
-          <label className="grid gap-2 text-xs font-medium text-muted">Password
-            <input required autoComplete="current-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-11 rounded-xl border border-line bg-white px-3.5 text-sm text-slate-800 outline-none focus:border-gold focus:ring-2 focus:ring-gold/15" />
-          </label>
-          {error && <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800" role="alert">{error}</p>}
-          <Button type="submit" className="w-full" disabled={busy}><LockKeyhole aria-hidden="true" className="size-4" />{busy ? "Signing in…" : "Sign in"}</Button>
-        </form>
-        <p className="mt-6 border-t border-line pt-4 text-[11px] leading-relaxed text-quiet">Accounts and permissions are managed by your administrator.</p>
-      </Card>
+      </div>
     </main>
   );
 }

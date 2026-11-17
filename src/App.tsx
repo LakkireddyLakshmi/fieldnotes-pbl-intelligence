@@ -42,7 +42,7 @@ import type {
 
 type View = "program" | "schools" | "grant" | "brief" | "account";
 type Theme = "light" | "dark";
-type PageTemplate = "classic" | "compact" | "editorial";
+type PageTemplate = "classic" | "compact" | "editorial" | "executive" | "field" | "briefing" | "canvas" | "ledger" | "presentation";
 type ToastState = { message: string; kind: "success" | "error" };
 
 const initialFilters: ProgramFilters = {
@@ -80,7 +80,7 @@ export default function App() {
   });
   const [pageTemplate, setPageTemplate] = useState<PageTemplate>(() => {
     const saved = window.localStorage.getItem("fieldnotes-template");
-    return saved === "compact" || saved === "editorial" ? saved : "classic";
+    return saved === "compact" || saved === "editorial" || saved === "executive" || saved === "field" || saved === "briefing" || saved === "canvas" || saved === "ledger" || saved === "presentation" ? saved : "classic";
   });
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -340,10 +340,16 @@ export default function App() {
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
               <label className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-white px-2.5 text-xs text-muted">
                 <span className="hidden sm:inline">Layout</span>
-                <select aria-label="Page template" value={pageTemplate} onChange={(event) => setPageTemplate(event.target.value as PageTemplate)} className="max-w-[106px] bg-transparent text-xs text-slate-800 outline-none">
+                <select aria-label="Page template" value={pageTemplate} onChange={(event) => setPageTemplate(event.target.value as PageTemplate)} className="max-w-[150px] bg-transparent text-xs text-slate-800 outline-none">
                   <option value="classic">Classic</option>
                   <option value="compact">Compact</option>
                   <option value="editorial">Editorial</option>
+                  <option value="executive">Executive</option>
+                  <option value="field">Field log</option>
+                  <option value="briefing">Briefing</option>
+                  <option value="canvas">Canvas</option>
+                  <option value="ledger">Ledger</option>
+                  <option value="presentation">Presentation</option>
                 </select>
               </label>
               <div aria-label="Color theme" role="group" className="inline-flex h-9 items-center gap-0.5 rounded-lg border border-line bg-white p-1">
