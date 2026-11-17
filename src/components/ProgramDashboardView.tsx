@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import {
   BarChart3,
   CalendarCheck,
+  ChevronLeft,
+  ChevronRight,
   ClipboardCheck,
   Download,
   FileCheck2,
@@ -153,19 +156,29 @@ function TrendPanel({ dashboard, onChange }: { dashboard: ProgramDashboard; onCh
   );
 }
 function GeographyPanel({ dashboard, onSelect, level, onLevelChange }: { dashboard: ProgramDashboard; onSelect: Props["onSelectGeography"]; level: Props["geographyLevel"]; onLevelChange: Props["onGeographyLevelChange"] }) {
-  const chartData = [...dashboard.geographies]
-    .filter((item) => item.metrics.schools > 0 && item.metrics.participationRate !== null)
-    .sort((a, b) => (a.metrics.participationRate ?? 1) - (b.metrics.participationRate ?? 1))
-    .slice(0, 8)
+  const [tablePage, setTablePage] = useState(1);
+  const pageSize = 10;
+  const pageCount = Math.max(1, Math.ceil(dashboard.geographies.length / pageSize));
+  const pageItems = dashboard.geographies.slice((tablePage - 1) * pageSize, tablePage * pageSize);
+
+  useEffect(() => {
+    setTablePage(1);
+  }, [dashboard.filters.month, dashboard.filters.district, dashboard.filters.block, dashboard.filters.grade, dashboard.filters.subject, dashboard.groupBy]);
+
+  const withParticipation = dashboard.geographies
+    .filter((item) => item.metrics.schools > 0 && item.metrics.participationRate !== null);
+  const sortedByParticipation = [...withParticipation].sort(
+    (a, b) => (a.metrics.participationRate ?? 0) - (b.metrics.participationRate ?? 0) || a.name.localeCompare(b.name),
+  );
+  const comparisonSet = sortedByParticipation.length <= 8
+    ? sortedByParticipation
+    : [...sortedByParticipation.slice(0, 4), ...sortedByParticipation.slice(-4)];
+  const chartData = comparisonSet
     .map((item, rank) => ({
       name: item.name,
       Participation: Number(((item.metrics.participationRate ?? 0) * 100).toFixed(1)),
       rank,
     }));
-  const withParticipation = dashboard.geographies.filter((item) => item.metrics.schools > 0 && item.metrics.participationRate !== null);
-  const sortedByParticipation = [...withParticipation].sort(
-    (a, b) => (a.metrics.participationRate ?? 0) - (b.metrics.participationRate ?? 0),
-  );
   const lowest = sortedByParticipation[0];
   const highest = sortedByParticipation.at(-1);
 
@@ -174,9 +187,9 @@ function GeographyPanel({ dashboard, onSelect, level, onLevelChange }: { dashboa
       <SectionHeading
         eyebrow="Geographic performance"
         title={`${dashboard.groupBy === "district" ? "District" : "Block"} comparison`}
-        detail="Lower participation rates appear first. The dashed marker shows the 75% on-track threshold."
+        detail="Chart shows the four lowest and four highest locations; use the table for all locations. The dashed marker is the 75% target."
         action={<div className="inline-flex rounded-lg border border-line bg-raised p-1" role="group" aria-label="Geography table level">
-          {(["district", "block"] as const).map((item) => <button key={item} type="button" aria-pressed={level === item} onClick={() => onLevelChange(item)} className={`rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition ${level === item ? "bg-[#3158c9] text-white" : "text-muted hover:bg-panel hover:text-slate-900"}`}>{item === "district" ? "Districts" : "Blocks"}</button>)}
+          {(["district", "block"] as const).map((item) => <button key={item} type="button" aria-pressed={level === item} onClick={() => { setTablePage(1); onLevelChange(item); }} className={`rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition ${level === item ? "bg-[#3158c9] text-white" : "text-muted hover:bg-panel hover:text-slate-900"}`}>{item === "district" ? "Districts" : "Blocks"}</button>)}
         </div>}
       />
       <div className="mb-4 grid gap-3 sm:grid-cols-2">
@@ -216,7 +229,7 @@ function GeographyPanel({ dashboard, onSelect, level, onLevelChange }: { dashboa
             </tr>
           </thead>
           <tbody>
-            {dashboard.geographies.slice(0, 16).map((item) => (
+            {pageItems.map((item) => (
               <tr key={item.name} className="border-b border-line/70 text-muted transition odd:bg-panel even:bg-raised/30 hover:bg-gold/5">
                 <td className="px-3 py-3 font-medium text-slate-800">
                   <button className="text-left text-slate-800 hover:text-gold" onClick={() => onSelect(dashboard, item.name)}>{item.name}</button>
@@ -230,6 +243,14 @@ function GeographyPanel({ dashboard, onSelect, level, onLevelChange }: { dashboa
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="mt-4 flex w-full min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Geography table pagination">
+        <p className="text-sm font-semibold text-muted" role="status" aria-live="polite">Showing {dashboard.geographies.length ? (tablePage - 1) * pageSize + 1 : 0}–{Math.min(tablePage * pageSize, dashboard.geographies.length)} of {formatNumber(dashboard.geographies.length)} {dashboard.groupBy === "district" ? "districts" : "blocks"}</p>
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+          <span className="px-1 text-sm font-semibold text-muted">Page {tablePage} of {pageCount}</span>
+          <button type="button" onClick={() => setTablePage((page) => Math.max(1, page - 1))} disabled={tablePage <= 1} className="school-page-prev inline-flex h-10 items-center gap-1 rounded-lg border px-3 text-sm font-bold transition" aria-label="Previous geography page"><ChevronLeft aria-hidden="true" className="size-4" />Previous</button>
+          <button type="button" onClick={() => setTablePage((page) => Math.min(pageCount, page + 1))} disabled={tablePage >= pageCount} className="school-page-next inline-flex h-10 items-center gap-1 rounded-lg border px-3 text-sm font-bold transition" aria-label="Next geography page">Next<ChevronRight aria-hidden="true" className="size-4" /></button>
+        </div>
       </div>
       <p className="mt-3 text-[10px] leading-relaxed text-quiet">Click a geography to drill into its filters. Risk bands: On Track ≥75%; Behind 60–&lt;75%; At Risk 35–&lt;60%; Critical &lt;35%.</p>
     </Card>

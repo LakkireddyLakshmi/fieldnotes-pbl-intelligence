@@ -1,4 +1,4 @@
-# Fieldnotes — PBL Program Intelligence
+# PBL Review Hub — Program Intelligence
 
 A full-stack review and reporting workspace built for the synthetic Mantra4Change assessment data. The application connects school-level PBL responses to deterministic program insights, meeting preparation, and traceable grant-report drafts.
 
@@ -70,6 +70,8 @@ npm.cmd start
 ```
 
 The Express process serves the built React client and `/api` from the same origin. Set `PORT`, `DATABASE_URL`, and the initial administrator variables in the hosting environment. Run `npm.cmd run db:migrate` and `npm.cmd run db:seed` as controlled release steps; do not run the seed against real program data.
+
+Grant report narratives are deterministic by default. To enable optional OpenRouter drafts, set `OPENROUTER_API_KEY` on the server (never in browser code) and optionally set `OPENROUTER_MODEL` (default: `openai/gpt-5.2`). Admins and analysts can generate a draft from the selected grant period. Only that grant period's report facts and linked evidence descriptions are sent to OpenRouter; generated text is not stored, and Copy/Download use the currently displayed draft. The deterministic report remains available when the key is absent or generation fails. OpenRouter uses its Chat Completions API: https://openrouter.ai/docs/api_reference/overview
 
 ### Deploy to Render
 

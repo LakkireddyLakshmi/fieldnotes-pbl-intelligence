@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { KeyRound, LockKeyhole, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
+import { Globe2, KeyRound, LockKeyhole, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 import type { AuthUser } from "../types";
 import { Button, Card, SectionHeading } from "./ui";
 
@@ -19,8 +19,8 @@ export function SignInView({ onSignIn, error, busy }: {
     <main className="grid min-h-screen place-items-center bg-canvas px-4 py-10">
       <Card className="w-full max-w-md p-7 sm:p-9">
         <div className="mb-7 flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl bg-gold font-display text-lg font-bold text-white">F</span>
-          <div><p className="font-display text-lg font-bold text-slate-900">Fieldnotes</p><p className="text-xs text-muted">PBL program review</p></div>
+          <span className="grid size-11 place-items-center rounded-xl bg-[#3158c9] text-white"><Globe2 aria-hidden="true" className="size-6" strokeWidth={2.3} /></span>
+          <div><p className="font-display text-lg font-bold text-slate-900">PBL Review Hub</p><p className="text-xs text-muted">Program review and grant reporting</p></div>
         </div>
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">Secure workspace</p>
         <h1 className="heading-accent mt-1 font-display text-2xl font-semibold text-slate-900">Sign in to continue</h1>

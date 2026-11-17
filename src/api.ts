@@ -61,6 +61,14 @@ export function getGrantReport(grantId: string, month: string, signal?: AbortSig
   return request(`/api/grants/report?${query}`, signal);
 }
 
+export function getGrantNarrativeStatus(): Promise<{ enabled: boolean }> {
+  return request("/api/grants/report/narrative-status");
+}
+
+export function generateGrantNarrative(grantId: string, month: string): Promise<{ narrative: string }> {
+  return send("/api/grants/report/narrative", "POST", { grantId, month });
+}
+
 async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
   const response = await fetch(path, {
     method,

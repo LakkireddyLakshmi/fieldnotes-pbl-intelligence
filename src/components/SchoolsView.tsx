@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Search, School as SchoolIcon, UsersRound, ClipboardCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search, School as SchoolIcon, UsersRound, ClipboardCheck } from "lucide-react";
 import { getSchools } from "../api";
 import type { FilterOptions, ProgramFilters, RiskStatus, SchoolRecord } from "../types";
 import { Badge, Button, Card, ErrorState, formatNumber, LoadingState, SectionHeading, SelectField } from "./ui";
@@ -22,6 +22,8 @@ export default function SchoolsView({ filters, options, canExport, onChange }: P
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -37,6 +39,16 @@ export default function SchoolsView({ filters, options, canExport, onChange }: P
     const term = search.trim().toLocaleLowerCase();
     return rows.filter((row) => !term || [row.schoolName, row.schoolCode, row.district, row.block].some((value) => value.toLocaleLowerCase().includes(term)));
   }, [rows, search]);
+  const pageCount = Math.max(1, Math.ceil(visibleRows.length / pageSize));
+  const pageRows = visibleRows.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters.month, filters.district, filters.block, filters.grade, filters.subject, search]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, pageCount));
+  }, [pageCount]);
   const participating = rows.filter((row) => row.participated).length;
   const evidenceCount = rows.filter((row) => row.evidence).length;
   const exportCsv = () => {
@@ -79,7 +91,7 @@ export default function SchoolsView({ filters, options, canExport, onChange }: P
       {error ? <ErrorState message={error} /> : busy && !rows.length ? <LoadingState label="Loading school records…" /> : (
         <Card className="overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3 sm:px-5">
-            <div><h3 className="text-sm font-semibold text-slate-900">School reporting list</h3><p className="mt-0.5 text-xs text-quiet">{formatNumber(visibleRows.length)} records · attendance uses the selected grade and subject filters</p></div>
+            <div><h3 className="text-sm font-semibold text-slate-900">School reporting list</h3><p className="mt-0.5 text-xs text-quiet">Showing {visibleRows.length ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, visibleRows.length)} of {formatNumber(visibleRows.length)} schools · attendance uses the selected grade and subject filters</p></div>
             {busy && <span className="text-xs text-quiet">Updating…</span>}
           </div>
           {visibleRows.length ? <div className="overflow-x-auto">
@@ -87,7 +99,7 @@ export default function SchoolsView({ filters, options, canExport, onChange }: P
               <thead className="bg-raised/70 text-[10px] uppercase tracking-wider text-quiet"><tr>
                 <th className="px-4 py-3 font-semibold sm:px-5">School</th><th className="px-3 py-3 font-semibold">District / block</th><th className="px-3 py-3 text-right font-semibold">Enrollment</th><th className="px-3 py-3 text-right font-semibold">Attendance</th><th className="px-3 py-3 font-semibold">PBL</th><th className="px-3 py-3 font-semibold">Evidence</th><th className="px-4 py-3 font-semibold sm:px-5">Signal</th>
               </tr></thead>
-              <tbody>{visibleRows.map((row) => <tr key={`${row.schoolCode}-${filters.month}`} className="odd:bg-panel even:bg-raised/25 hover:bg-blue-50/60 dark:hover:bg-blue-900/20">
+              <tbody>{pageRows.map((row) => <tr key={`${row.schoolCode}-${filters.month}`} className="odd:bg-panel even:bg-raised/25 hover:bg-blue-50/60 dark:hover:bg-blue-900/20">
                 <td className="px-4 py-3 sm:px-5"><span className="school-table-primary block font-semibold">{row.schoolName}</span><span className="school-table-secondary mt-0.5 block text-[11px]">{row.schoolCode}</span></td>
                 <td className="px-3 py-3"><span className="school-table-primary block font-medium">{row.district}</span><span className="school-table-secondary mt-0.5 block text-[11px]">{row.block}</span></td>
                 <td className="school-table-primary px-3 py-3 text-right font-semibold tabular-nums">{formatNumber(row.enrollment)}</td>
@@ -98,6 +110,13 @@ export default function SchoolsView({ filters, options, canExport, onChange }: P
               </tr>)}</tbody>
             </table>
           </div> : <div className="px-5 py-12 text-center"><p className="text-sm font-medium text-slate-900">No matching school records</p><p className="mt-1 text-xs text-quiet">Try another month, district, block, or search term.</p></div>}
+          {visibleRows.length > pageSize && <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3 sm:px-5">
+            <p className="text-xs font-medium text-muted" role="status" aria-live="polite">Page {page} of {pageCount}</p>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1} className="school-page-prev inline-flex h-10 items-center gap-1 rounded-lg border px-4 text-sm font-bold transition" aria-label="Previous school page"><ChevronLeft aria-hidden="true" className="size-4" />Previous</button>
+              <button type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page >= pageCount} className="school-page-next inline-flex h-10 items-center gap-1 rounded-lg border px-4 text-sm font-bold transition" aria-label="Next school page">Next<ChevronRight aria-hidden="true" className="size-4" /></button>
+            </div>
+          </div>}
         </Card>
       )}
       <p className="text-xs leading-relaxed text-quiet">Signals combine selected-slice PBL completion, evidence submission, and reported session attendance using the dashboard risk bands. A dash means attendance was not reported for the selected slice.</p>

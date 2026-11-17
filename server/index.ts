@@ -6,6 +6,7 @@ import { z } from "zod";
 import { pool } from "./db.js";
 import type { FilterOptions, FollowUpRecord, ProgramFilters } from "./contracts.js";
 import { getGrantReport } from "./grant-service.js";
+import { generateGrantNarrative } from "./narrative-service.js";
 import { getProgramDashboard, getSchoolRecords } from "./program-service.js";
 import { HttpError } from "./errors.js";
 import {
@@ -333,6 +334,21 @@ app.get("/api/grants/report", async (request, response, next) => {
     }).safeParse(request.query);
     if (!query.success) throw new HttpError(400, query.error.issues[0]?.message ?? "Invalid grant selection.");
     response.json(await getGrantReport(query.data.grantId, query.data.month));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/grants/report/narrative-status", requireUser, requireRole("admin", "analyst"), (_request, response) => {
+  response.json({ enabled: Boolean(process.env.OPENROUTER_API_KEY?.trim()) });
+});
+
+app.post("/api/grants/report/narrative", requireUser, requireRole("admin", "analyst"), async (request, response, next) => {
+  try {
+    const input = z.object({ grantId: z.string().trim().min(1).max(100), month: monthSchema }).safeParse(request.body);
+    if (!input.success) throw new HttpError(400, input.error.issues[0]?.message ?? "Invalid grant selection.");
+    const report = await getGrantReport(input.data.grantId, input.data.month);
+    response.json({ narrative: await generateGrantNarrative(report) });
   } catch (error) {
     next(error);
   }

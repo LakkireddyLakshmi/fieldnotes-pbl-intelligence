@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   BadgeDollarSign,
@@ -5,12 +6,14 @@ import {
   CheckCircle2,
   Copy,
   Download,
+  LoaderCircle,
   FileImage,
   FileText,
   Landmark,
   ShieldCheck,
 } from "lucide-react";
 import type { GrantOption, GrantReport } from "../types";
+import { generateGrantNarrative, getGrantNarrativeStatus } from "../api";
 import { Badge, Button, Card, formatNumber, formatPercent, LoadingState, SectionHeading, SelectField } from "./ui";
 
 interface Props {
@@ -23,8 +26,8 @@ interface Props {
   busy: boolean;
   onGrantChange: (value: string) => void;
   onMonthChange: (value: string) => void;
-  onCopy: () => void;
-  onDownload: () => void;
+  onCopy: (text?: string) => void;
+  onDownload: (text?: string) => void;
 }
 
 export default function GrantReportView({
@@ -40,6 +43,26 @@ export default function GrantReportView({
   onCopy,
   onDownload,
 }: Props) {
+  const [narrative, setNarrative] = useState("");
+  const [narrativeBusy, setNarrativeBusy] = useState(false);
+  const [narrativeError, setNarrativeError] = useState("");
+  const [narrativeEnabled, setNarrativeEnabled] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getGrantNarrativeStatus().then(({ enabled }) => { if (active) setNarrativeEnabled(enabled); }).catch(() => { if (active) setNarrativeEnabled(false); });
+    return () => { active = false; };
+  }, []);
+  useEffect(() => { setNarrative(""); setNarrativeError(""); }, [grantId, month]);
+
+  async function createNarrative() {
+    setNarrativeBusy(true);
+    setNarrativeError("");
+    try { setNarrative((await generateGrantNarrative(grantId, month)).narrative); }
+    catch (error) { setNarrativeError(error instanceof Error ? error.message : "Could not generate the report narrative."); }
+    finally { setNarrativeBusy(false); }
+  }
+
   if (busy && !report) return <LoadingState label="Loading grant facts and linked evidence…" />;
 
   return (
@@ -151,13 +174,22 @@ export default function GrantReportView({
                 <p className="text-[10px] font-bold uppercase tracking-[0.17em] text-gold">Report preview</p>
                 <h3 className="heading-accent mt-1 font-display text-base font-semibold text-slate-900">{report.grant.donor} · {report.grant.grantName}</h3>
               </div>
-              {canExport && <div className="flex gap-2">
-                <Button variant="outline" onClick={onCopy}><Copy aria-hidden="true" className="size-3.5" />Copy</Button>
-                <Button onClick={onDownload}><Download aria-hidden="true" className="size-3.5" />Download</Button>
+              {canExport && <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={createNarrative} disabled={!narrativeEnabled || narrativeBusy || busy} title={narrativeEnabled ? "Draft narrative from the selected source facts" : "Configure OPENROUTER_API_KEY on the server to enable this"}>
+                  {narrativeBusy && <LoaderCircle aria-hidden="true" className="size-3.5 animate-spin" />}
+                  {narrativeBusy ? "Generating…" : "Generate narrative"}
+                </Button>
+                <Button variant="outline" onClick={() => onCopy(narrative || report.narrative)}><Copy aria-hidden="true" className="size-3.5" />Copy</Button>
+                <Button onClick={() => onDownload(narrative || report.narrative)}><Download aria-hidden="true" className="size-3.5" />Download</Button>
               </div>}
             </div>
             <div className="grid gap-0 xl:grid-cols-[1.2fr_0.8fr]">
-              <pre className="whitespace-pre-wrap break-words border-b border-line p-5 font-sans text-xs leading-7 text-slate-700 xl:border-b-0 xl:border-r">{report.narrative}</pre>
+              <div className="border-b border-line p-5 xl:border-b-0 xl:border-r">
+                {narrative && <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-700">OpenRouter generated draft · review before use</p>}
+                <pre className="whitespace-pre-wrap break-words font-sans text-xs leading-7 text-slate-700">{narrative || report.narrative}</pre>
+                {narrativeError && <p role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-800">{narrativeError}</p>}
+                {canExport && <p className="mt-3 text-xs font-medium text-muted">{narrativeEnabled ? "Generating a draft sends this selected grant period’s facts to OpenRouter. Review all figures and wording before sharing." : "Configure the OpenRouter key in the server environment to enable generated drafts. The source-based report remains available."}</p>}
+              </div>
               <div className="p-5">
                 <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted">Facts and sources used</p>
                 <dl className="space-y-2.5">

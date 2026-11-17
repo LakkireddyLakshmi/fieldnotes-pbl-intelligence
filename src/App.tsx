@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BookOpenCheck,
+  Globe2,
   FileBarChart2,
   Landmark,
   LayoutDashboard,
@@ -255,10 +256,10 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const copyGrantReport = useCallback(async () => {
+  const copyGrantReport = useCallback(async (text?: string) => {
     if (!grantReport) return;
     try {
-      await navigator.clipboard.writeText(grantReport.narrative);
+      await navigator.clipboard.writeText(text ?? grantReport.narrative);
       showToast("Grant report copied.");
     } catch (error) {
       console.error("Could not copy the grant report:", error);
@@ -266,9 +267,9 @@ export default function App() {
     }
   }, [grantReport, showToast]);
 
-  const downloadGrantReport = useCallback(() => {
+  const downloadGrantReport = useCallback((text?: string) => {
     if (!grantReport) return;
-    downloadText(`grant-report-${grantId}-${grantMonth}.txt`, grantReport.narrative);
+    downloadText(`grant-report-${grantId}-${grantMonth}.txt`, text ?? grantReport.narrative);
     showToast("Grant section downloaded.");
   }, [grantId, grantMonth, grantReport, showToast]);
 
@@ -312,10 +313,10 @@ export default function App() {
 
       <header className="sticky top-0 z-20 border-b border-line bg-canvas/90 backdrop-blur-xl">
           <div className="mx-auto flex min-h-[76px] max-w-[1680px] flex-wrap items-center justify-between gap-x-5 gap-y-3 px-4 py-3 sm:px-7">
-            <a href="#" className="flex shrink-0 items-center gap-3 text-slate-900" aria-label="Fieldnotes home">
-              <span className="grid size-10 place-items-center rounded-xl bg-[#3158c9] text-white"><BookOpenCheck aria-hidden="true" className="size-5" strokeWidth={2.3} /></span>
+            <a href="#" className="flex shrink-0 items-center gap-3 text-slate-900" aria-label="PBL Review Hub home">
+              <span className="grid size-10 place-items-center rounded-xl bg-[#3158c9] text-white"><Globe2 aria-hidden="true" className="size-5" strokeWidth={2.3} /></span>
               <span>
-                <span className="block font-display text-base font-bold tracking-tight text-slate-900">Fieldnotes<span className="text-gold">.</span></span>
+                <span className="block font-display text-base font-bold tracking-tight text-slate-900">PBL Review Hub<span className="text-gold">.</span></span>
                 <span className="mt-0.5 block text-[9px] uppercase tracking-[0.16em] text-quiet">{pageMeta.label}</span>
               </span>
             </a>
